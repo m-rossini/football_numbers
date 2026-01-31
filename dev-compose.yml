@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Containerfile
+    container_name: football_numbers_dev
+    volumes:
+      - .:/workspace:z
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    environment:
+      - NODE_ENV=development
+    networks:
+      - dev_network
+
+networks:
+  dev_network:
+    driver: bridge

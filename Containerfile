@@ -1,0 +1,43 @@
+# Multi-stage development container for Express/TypeScript application
+# Base stage with system tools and development environment
+
+FROM fedora:latest AS base
+
+RUN dnf update -y && \
+    dnf install -y \
+    bash \
+    git \
+    curl \
+    wget \
+    vim \
+    net-tools \
+    iproute \
+    bind-utils && \
+    dnf clean all
+
+# Node.js development stage
+FROM base AS node-dev
+
+RUN dnf install -y \
+    nodejs \
+    npm && \
+    dnf clean all
+
+RUN npm install -g \
+    typescript \
+    ts-node \
+    eslint \
+    nodemon
+
+WORKDIR /workspace
+
+# Final development container
+FROM node-dev
+
+ENV NODE_ENV=development
+
+# Setup for SELinux compatibility
+RUN mkdir -p /workspace && \
+    chmod 777 /workspace
+
+ENTRYPOINT ["/bin/bash"]
