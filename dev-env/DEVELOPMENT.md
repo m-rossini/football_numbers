@@ -15,7 +15,31 @@ This project uses a containerized development environment for TypeScript/Express
 
 ## Usage
 
-### Option 1: VSCode Remote Containers (Recommended)
+### Option 1: Using Makefile (Quickest Start)
+
+From the `dev-env` directory, use the provided Makefile:
+
+```bash
+# View all available commands
+make help
+
+# Build the container image
+make build
+
+# Build and run the container (auto-cleanup)
+make run
+
+# Check status of image and container
+make status
+
+# Stop and remove the running container
+make clean
+
+# Remove container and image completely
+make clean-all
+```
+
+### Option 2: VSCode Remote Containers 
 
 1. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
 2. Open the project in VSCode
@@ -23,7 +47,7 @@ This project uses a containerized development environment for TypeScript/Express
 4. Select "Reopen in Container"
 5. VSCode will build and attach automatically
 
-### Option 2: Podman Compose
+### Option 3: Podman Compose
 
 ```bash
 # Build the container
@@ -38,7 +62,7 @@ podman-compose -f dev-compose.yml run --rm dev npm test
 podman-compose -f dev-compose.yml run --rm dev npm run dev
 ```
 
-### Option 3: Direct Podman
+### Option 4: Direct Podman
 
 ```bash
 podman build -t football-numbers-dev .

@@ -23,7 +23,7 @@ build:
 
 run:
 	@echo "Starting development container: $(CONTAINER_NAME)"
-	podman run -it --rm \
+	podman run -it --rm -d \
 		-v $$(pwd)/..:/workspace:z \
 		--name $(CONTAINER_NAME) \
 		$(IMAGE_NAME)
