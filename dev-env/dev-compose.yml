@@ -6,7 +6,6 @@ services:
     build:
       context: .
       dockerfile: Containerfile
-    container_name: football_numbers_dev
     ports:
       - "3000:3000"
     volumes:
