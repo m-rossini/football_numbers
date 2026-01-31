@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   dev:
+    image: football-numbers-dev:latest
     build:
       context: .
       dockerfile: Containerfile
-    container_name: football_numbers_dev
     ports:
       - "3000:3000"
     volumes:

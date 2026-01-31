@@ -27,15 +27,16 @@ RUN dnf update -y && \
     nodejs && \
     dnf clean all
 
+# Create non-root user first (before COPY)
+RUN useradd -m -u 1000 app
+
 WORKDIR /app
 
-# Copy only compiled artifacts and dependencies from builder
-COPY --from=builder /build/dist ./dist
-COPY --from=builder /build/node_modules ./node_modules
-COPY package.json .
+# Copy only compiled artifacts and dependencies from builder with ownership
+COPY --from=builder --chown=app:app /build/dist ./dist
+COPY --from=builder --chown=app:app /build/node_modules ./node_modules
+COPY --chown=app:app package.json .
 
-# Non-root user for security (optional but recommended)
-RUN useradd -m -u 1000 app && chown -R app:app /app
 USER app
 
 ENV NODE_ENV=production

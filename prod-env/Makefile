@@ -2,7 +2,7 @@
 
 # Configuration
 IMAGE_NAME := football-numbers-prod
-CONTAINER_NAME := football-numbers-prod
+CONTAINER_NAME := prod-env_prod_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
@@ -20,7 +20,7 @@ help:
 
 build:
 	@echo "Building production container image: $(IMAGE_NAME)"
-	podman build -t $(IMAGE_NAME) -f $(MAKEFILE_DIR)/$(DOCKERFILE) $(PROJECT_ROOT)
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml build
 	@echo "✓ Image built successfully"
 
 run:
@@ -28,9 +28,10 @@ run:
 	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml up -d
 
 clean:
-	@echo "Stopping and removing container: $(CONTAINER_NAME)"
-	@cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml down 2>/dev/null || true
-	@echo "✓ Container cleaned"
+	@echo "Stopping production container"
+	@podman container stop $(CONTAINER_NAME) 2>/dev/null || true
+	@podman container rm $(CONTAINER_NAME) 2>/dev/null || true
+	@echo "✓ Production container stopped"
 
 clean-all: clean
 	@echo "Removing image: $(IMAGE_NAME)"
@@ -43,5 +44,5 @@ status:
 	@podman image exists $(IMAGE_NAME) && echo "  ✓ Image exists" || echo "  ✗ Image not found"
 	@echo ""
 	@echo "Container: $(CONTAINER_NAME)"
-	@podman container exists $(CONTAINER_NAME) && echo "  ✓ Container running" || echo "  ✗ Container not running"
+	@podman ps -f name=$(CONTAINER_NAME) --format="table {{.Names}}\t{{.State}}" | grep -q $(CONTAINER_NAME) && echo "  ✓ Container running" || (podman container exists $(CONTAINER_NAME) 2>/dev/null && echo "  ⊘ Container exists (stopped)" || echo "  ✗ Container not found")
 	@echo ""
