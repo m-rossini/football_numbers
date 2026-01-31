@@ -6,6 +6,7 @@ CONTAINER_NAME := prod-env_prod_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
+PROD_HOSTNAME := football-numbers-prod.local
 
 help:
 	@echo "Football Numbers Production Environment - Available Targets"
@@ -25,13 +26,12 @@ build:
 
 run:
 	@echo "Starting production container: $(CONTAINER_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml up -d
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) PROD_HOSTNAME=$(PROD_HOSTNAME) podman-compose -f prod-compose.yml up -d
 
 clean:
-	@echo "Stopping production container"
-	@podman container stop $(CONTAINER_NAME) 2>/dev/null || true
-	@podman container rm $(CONTAINER_NAME) 2>/dev/null || true
-	@echo "✓ Production container stopped"
+	@echo "Stopping and removing production environment"
+	@cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml down --remove-orphans -v 2>/dev/null || true
+	@echo "✓ Production environment cleaned"
 
 clean-all: clean
 	@echo "Removing image: $(IMAGE_NAME)"
@@ -44,5 +44,12 @@ status:
 	@podman image exists $(IMAGE_NAME) && echo "  ✓ Image exists" || echo "  ✗ Image not found"
 	@echo ""
 	@echo "Container: $(CONTAINER_NAME)"
-	@podman ps -f name=$(CONTAINER_NAME) --format="table {{.Names}}\t{{.State}}" | grep -q $(CONTAINER_NAME) && echo "  ✓ Container running" || (podman container exists $(CONTAINER_NAME) 2>/dev/null && echo "  ⊘ Container exists (stopped)" || echo "  ✗ Container not found")
+	@running=$$(podman ps -f name=$(CONTAINER_NAME) --format '{{.Names}}' 2>/dev/null | grep -x '$(CONTAINER_NAME)' || true); \
+	if [ -n "$$running" ]; then \
+		echo "  ✓ Container running"; \
+	elif podman container exists $(CONTAINER_NAME) 2>/dev/null; then \
+		echo "  ⊘ Container exists (stopped)"; \
+	else \
+		echo "  ✗ Container not found"; \
+	fi
 	@echo ""
