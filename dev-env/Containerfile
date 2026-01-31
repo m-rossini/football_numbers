@@ -40,4 +40,7 @@ ENV NODE_ENV=development
 RUN mkdir -p /workspace && \
     chmod 777 /workspace
 
-ENTRYPOINT ["/bin/bash"]
+# Expose port for web application
+EXPOSE 3000
+
+CMD ["/bin/bash"]

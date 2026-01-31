@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Containerfile
     container_name: football_numbers_dev
+    ports:
+      - "3000:3000"
     volumes:
       - .:/workspace:z
     working_dir: /workspace
