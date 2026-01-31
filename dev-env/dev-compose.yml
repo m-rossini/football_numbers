@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/workspace:z
+      - ${PROJECT_ROOT:-.}:/workspace:z
     working_dir: /workspace
     stdin_open: true
     tty: true
