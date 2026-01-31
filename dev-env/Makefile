@@ -25,11 +25,11 @@ build:
 
 run:
 	@echo "Starting development container: $(CONTAINER_NAME)"
-	cd $(MAKEFILE_DIR) && podman-compose -f dev-compose.yml up -d
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f dev-compose.yml up -d
 
 clean:
 	@echo "Stopping and removing container: $(CONTAINER_NAME)"
-	@cd $(MAKEFILE_DIR) && podman-compose -f dev-compose.yml down 2>/dev/null || true
+	@cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f dev-compose.yml down 2>/dev/null || true
 	@echo "✓ Container cleaned"
 
 clean-all: clean
