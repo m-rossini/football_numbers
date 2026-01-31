@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   dev:
+    image: football-numbers-dev:latest
     build:
       context: .
       dockerfile: Containerfile

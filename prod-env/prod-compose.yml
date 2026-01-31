@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   prod:
+    image: football-numbers-prod:latest
     build:
       context: ${PROJECT_ROOT:-.}
       dockerfile: ./prod-env/Containerfile

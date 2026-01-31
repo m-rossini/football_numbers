@@ -20,7 +20,7 @@ help:
 
 build:
 	@echo "Building production container image: $(IMAGE_NAME)"
-	podman build -t $(IMAGE_NAME) -f $(MAKEFILE_DIR)/$(DOCKERFILE) $(PROJECT_ROOT)
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml build
 	@echo "✓ Image built successfully"
 
 run:
