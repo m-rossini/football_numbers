@@ -8,6 +8,7 @@ services:
       dockerfile: ./prod-env/Containerfile
     ports:
       - "3030:3000"
+    hostname: ${PROD_HOSTNAME}
     environment:
       - NODE_ENV=production
     networks:

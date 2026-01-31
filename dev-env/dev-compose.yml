@@ -15,6 +15,7 @@ services:
     tty: true
     environment:
       - NODE_ENV=development
+    hostname: ${DEV_HOSTNAME}
     networks:
       - dev_network
 

@@ -6,6 +6,7 @@ CONTAINER_NAME := dev-env_dev_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
+DEV_HOSTNAME := football-numbers-dev.local
 
 help:
 	@echo "Football Numbers Development Environment - Available Targets"
@@ -20,18 +21,17 @@ help:
 
 build:
 	@echo "Building container image: $(IMAGE_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f dev-compose.yml build
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) DEV_HOSTNAME=$(DEV_HOSTNAME) podman-compose -f dev-compose.yml build
 	@echo "✓ Image built successfully"
 
 run:
 	@echo "Starting development container: $(CONTAINER_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f dev-compose.yml up -d
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT)  podman-compose -f dev-compose.yml up -d
 
 clean:
-	@echo "Stopping development container"
-	@podman container stop $(CONTAINER_NAME) 2>/dev/null || true
-	@podman container rm $(CONTAINER_NAME) 2>/dev/null || true
-	@echo "✓ Development container stopped"
+	@echo "Stopping and removing development environment"
+	@cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f dev-compose.yml down --remove-orphans -v 2>/dev/null || true
+	@echo "✓ Development environment cleaned"
 
 clean-all: clean
 	@echo "Removing image: $(IMAGE_NAME)"
