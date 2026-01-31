@@ -9,9 +9,6 @@ services:
     container_name: football_numbers_prod
     ports:
       - "3030:3000"
-    volumes:
-      - ${PROJECT_ROOT:-.}:/app:ro
-    working_dir: /app
     environment:
       - NODE_ENV=production
     networks:
