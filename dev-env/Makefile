@@ -43,5 +43,5 @@ status:
 	@podman image exists $(IMAGE_NAME) && echo "  ✓ Image exists" || echo "  ✗ Image not found"
 	@echo ""
 	@echo "Container: $(CONTAINER_NAME)"
-	@podman container exists $(CONTAINER_NAME) && echo "  ✓ Container running" || echo "  ✗ Container not running"
+	@podman ps -f name=$(CONTAINER_NAME) --format="table {{.Names}}\t{{.State}}" | grep -q $(CONTAINER_NAME) && echo "  ✓ Container running" || (podman container exists $(CONTAINER_NAME) 2>/dev/null && echo "  ⊘ Container exists (stopped)" || echo "  ✗ Container not found")
 	@echo ""
