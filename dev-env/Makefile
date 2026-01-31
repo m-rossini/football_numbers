@@ -23,15 +23,11 @@ build:
 
 run:
 	@echo "Starting development container: $(CONTAINER_NAME)"
-	podman run -it --rm -d \
-		-v $$(pwd)/..:/workspace:z \
-		--name $(CONTAINER_NAME) \
-		$(IMAGE_NAME)
+	podman-compose -f dev-compose.yml up -d
 
 clean:
 	@echo "Stopping and removing container: $(CONTAINER_NAME)"
-	@podman container stop $(CONTAINER_NAME) 2>/dev/null || true
-	@podman container rm $(CONTAINER_NAME) 2>/dev/null || true
+	@podman-compose -f dev-compose.yml down 2>/dev/null || true
 	@echo "✓ Container cleaned"
 
 clean-all: clean
