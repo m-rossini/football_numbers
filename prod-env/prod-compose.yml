@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  prod:
+    build:
+      context: ${PROJECT_ROOT:-.}
+      dockerfile: ./prod-env/Containerfile
+    container_name: football_numbers_prod
+    ports:
+      - "3030:3000"
+    volumes:
+      - ${PROJECT_ROOT:-.}:/app:ro
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+    networks:
+      - prod_network
+    restart: unless-stopped
+
+networks:
+  prod_network:
+    driver: bridge
