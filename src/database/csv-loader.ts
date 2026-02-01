@@ -15,14 +15,21 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
 
   let count = 0;
   for (const record of records) {
-    const homeGoalsValue = record.home_score && record.home_score.trim() ? parseInt(record.home_score, 10) : null;
-    const awayGoalsValue = record.away_score && record.away_score.trim() ? parseInt(record.away_score, 10) : null;
+    // Parse scores, default to 0 if empty/invalid
+    const homeGoals = record.home_score && record.home_score.trim() !== '' ? parseInt(record.home_score, 10) : 0;
+    const awayGoals = record.away_score && record.away_score.trim() !== '' ? parseInt(record.away_score, 10) : 0;
+
+    // Skip records with invalid scores (NaN)
+    if (isNaN(homeGoals) || isNaN(awayGoals)) {
+      continue;
+    }
+
     const result: Result = {
       date: record.date,
       homeTeam: record.home_team,
       awayTeam: record.away_team,
-      homeGoals: homeGoalsValue,
-      awayGoals: awayGoalsValue,
+      homeGoals,
+      awayGoals,
       tournament: record.tournament,
       city: record.city,
       country: record.country,
