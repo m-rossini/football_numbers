@@ -50,11 +50,6 @@ export interface DatabaseSnapshot {
  */
 export interface LoaderContext {
   /**
-   * Name of the CSV file for error messages (e.g., "results.csv")
-   */
-  fileName: string;
-
-  /**
    * Path to the CSV file to load
    */
   filePath: string;
@@ -68,11 +63,6 @@ export interface LoaderContext {
    * List of required fields that must be present in every record
    */
   requiredFields: string[];
-
-  /**
-   * List of optional fields (can be undefined, null, or empty)
-   */
-  optionalFields?: string[];
 
   /**
    * Function to transform raw CSV record into database-ready values
