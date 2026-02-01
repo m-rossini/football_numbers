@@ -11,6 +11,7 @@ services:
       - "3000:3000"
     volumes:
       - ${PROJECT_ROOT:-.}:/workspace:z
+      - ${DATA_PROJECT_ROOT:-.}:/data:ro,z
     working_dir: /workspace
     stdin_open: true
     tty: true

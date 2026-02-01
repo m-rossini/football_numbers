@@ -9,6 +9,8 @@ services:
       dockerfile: ./prod-env/Containerfile
     ports:
       - "3030:3000"
+    volumes:
+      - ${DATA_PROJECT_ROOT:-.}:/data:ro,z
     hostname: ${PROD_HOSTNAME}
     environment:
       - NODE_ENV=production
