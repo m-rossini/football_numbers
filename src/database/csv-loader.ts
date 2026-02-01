@@ -178,7 +178,29 @@ export async function loadShootouts(db: FootballDatabase, filePath: string): Pro
   }) as any[];
 
   let count = 0;
-  for (const record of records) {
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
+
+    // Validate required fields
+    const requiredFields = {
+      date: record.date,
+      home_team: record.home_team,
+      away_team: record.away_team,
+      winner: record.winner,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([, value]) => value === undefined || value === null || (typeof value === 'string' && value.trim() === ''))
+      .map(([field]) => field);
+
+    if (missingFields.length > 0) {
+      console.error(
+        `❌ MISSING FIELD(S) in shootouts.csv at line ${lineNumber}: [${missingFields.join(', ')}] - Record: ${JSON.stringify(record)}`
+      );
+      continue;
+    }
+
     const shootout: Shootout = {
       date: record.date,
       homeTeam: record.home_team,
@@ -195,7 +217,10 @@ export async function loadShootouts(db: FootballDatabase, filePath: string): Pro
       count++;
     } catch (err) {
       console.error(
-        `Failed to load shootout: ${shootout.date} ${shootout.homeTeam} vs ${shootout.awayTeam}`,
+        `❌ DATABASE ERROR in shootouts.csv at line ${lineNumber}: Foreign key constraint failed`,
+        `\n   Date: ${shootout.date}, Home: ${shootout.homeTeam}, Away: ${shootout.awayTeam}`,
+        `\n   The result record (${shootout.date} ${shootout.homeTeam} vs ${shootout.awayTeam}) may not exist in results table`,
+        `\n   Error:`,
         err
       );
     }
@@ -215,9 +240,15 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
   }) as any[];
 
   let count = 0;
-  for (const record of records) {
-    // Skip rows with missing name or empty formerName
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
+
+    // Validate required field: name
     if (!record.name || !record.name.trim()) {
+      console.error(
+        `❌ MISSING FIELD(S) in former_names.csv at line ${lineNumber}: [name] - Record: ${JSON.stringify(record)}`
+      );
       continue;
     }
 
@@ -234,7 +265,12 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
       ]);
       count++;
     } catch (err) {
-      console.error(`Failed to load former name: ${formerName.name}`, err);
+      console.error(
+        `❌ DATABASE ERROR in former_names.csv at line ${lineNumber}: Failed to insert`,
+        `\n   Name: ${formerName.name}, Former Name: ${formerName.formerName || 'NULL'}`,
+        `\n   Error:`,
+        err
+      );
     }
   }
 
