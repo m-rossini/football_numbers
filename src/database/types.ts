@@ -33,7 +33,7 @@ export interface Shootout {
 
 export interface FormerName {
   name: string;
-  formerName: string;
+  formerName: string | null;
 }
 
 export interface DatabaseSnapshot {

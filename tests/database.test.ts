@@ -219,6 +219,27 @@ describe('Database', () => {
 
       expect(retrieved.formerName).toBe("Côte d'Ivoire");
     });
+
+    it('should load former names with missing formerName value', async () => {
+      const formerName: FormerName = {
+        name: 'Myanmar',
+        formerName: null,
+      };
+
+      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
+        formerName.name,
+        formerName.formerName,
+      ]);
+
+      const snapshot = await db.getSnapshot();
+      expect(snapshot.formerNamesCount).toBe(1);
+
+      const retrieved = await db.get('SELECT * FROM formerNames WHERE name = ?', [
+        formerName.name,
+      ]);
+
+      expect(retrieved.formerName).toBeNull();
+    });
   });
 
   describe('Data Integrity', () => {

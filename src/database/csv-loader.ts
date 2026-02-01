@@ -147,9 +147,15 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
 
   let count = 0;
   for (const record of records) {
+    // Skip rows with missing name or empty formerName
+    if (!record.name || !record.name.trim()) {
+      continue;
+    }
+
+    const formerNameValue = record.former_name && record.former_name.trim() ? record.former_name : null;
     const formerName: FormerName = {
       name: record.name,
-      formerName: record.former_name,
+      formerName: formerNameValue,
     };
 
     try {

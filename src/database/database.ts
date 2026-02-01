@@ -92,7 +92,7 @@ export class FootballDatabase {
           `
           CREATE TABLE IF NOT EXISTS formerNames (
             name TEXT PRIMARY KEY,
-            formerName TEXT NOT NULL
+            formerName TEXT
           )
         `,
           (err) => {
