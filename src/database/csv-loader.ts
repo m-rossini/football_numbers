@@ -1,7 +1,61 @@
 import { readFileSync } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { FootballDatabase } from './database';
-import { Result, Goalscorer, Shootout, FormerName } from './types';
+import { Result, Goalscorer, Shootout, FormerName, LoaderContext } from './types';
+
+/**
+ * Unified data loader for staging tables
+ * Parses CSV, validates records, transforms data, and inserts into database
+ */
+export async function loadDataIntoStaging(db: FootballDatabase, context: LoaderContext): Promise<number> {
+  const content = readFileSync(context.filePath, 'utf-8');
+  const records = parse(content, {
+    columns: true,
+    skip_empty_lines: true,
+  }) as any[];
+
+  let count = 0;
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
+
+    // Validate required fields
+    const missingFields = context.requiredFields
+      .filter(field => {
+        const value = record[field];
+        return value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
+      });
+
+    if (missingFields.length > 0) {
+      console.error(context.errorMessages.missingFields(lineNumber, missingFields, record));
+      continue;
+    }
+
+    // Transform record to database values
+    let dbValues: any[];
+    try {
+      const transformed = context.recordTransformer(record, lineNumber);
+      if (transformed === null) {
+        // Transformer returned null, skip this record (error was already logged)
+        continue;
+      }
+      dbValues = transformed;
+    } catch (err) {
+      console.error(context.errorMessages.transformError(lineNumber, err, record));
+      continue;
+    }
+
+    // Insert record
+    try {
+      await db.run(context.sqlStatement, dbValues);
+      count++;
+    } catch (err) {
+      console.error(context.errorMessages.insertError(lineNumber, err, record));
+    }
+  }
+
+  return count;
+}
 
 /**
  * Load results from CSV file
@@ -244,12 +298,6 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
     const record = records[i];
     const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
 
-    // if (!record.current || !record.current.trim()) {
-    //   console.error(
-    //     `❌ MISSING FIELD(S) in former_names.csv at line ${lineNumber}: [name] - Record: ${JSON.stringify(record)}`
-    //   );
-    //   continue;
-    // }
     const formerName: FormerName = {
       currentName: record.current.trim(),
       formerName: record.former.trim(),
