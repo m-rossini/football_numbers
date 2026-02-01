@@ -64,12 +64,13 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
 
   let count = 0;
   for (const record of records) {
+    const minuteValue = record.minute && record.minute.trim() ? parseInt(record.minute, 10) : null;
     const goalscorer: Goalscorer = {
       date: record.date,
       homeTeam: record.home_team,
       awayTeam: record.away_team,
       scorer: record.scorer,
-      minute: record.minute ? parseInt(record.minute, 10) : 0,
+      minute: minuteValue,
       ownGoal: record.own_goal === 'TRUE' ? 1 : 0,
       penalty: record.penalty === 'TRUE' ? 1 : 0,
     };

@@ -68,7 +68,7 @@ export class FootballDatabase {
             homeTeam TEXT NOT NULL,
             awayTeam TEXT NOT NULL,
             scorer TEXT NOT NULL,
-            minute INTEGER NOT NULL,
+            minute INTEGER,
             ownGoal INTEGER DEFAULT 0,
             penalty INTEGER DEFAULT 0,
             FOREIGN KEY (date, homeTeam, awayTeam) REFERENCES results(date, homeTeam, awayTeam)

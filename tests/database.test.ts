@@ -121,6 +121,51 @@ describe('Database', () => {
       expect(retrieved.penalty).toBe(0);
     });
 
+    it('should load goalscorers with missing minute values', async () => {
+      // Insert a result first
+      await db.run(
+        `INSERT INTO results (date, homeTeam, awayTeam, homeGoals, awayGoals, tournament, city, country, neutral)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ['1980-09-18', 'China', 'North Korea', 1, 0, 'Friendly', 'Beijing', 'China', 0]
+      );
+
+      // Insert a goalscorer with null minute (historical data where minute not recorded)
+      const goalscorer: Goalscorer = {
+        date: '1980-09-18',
+        homeTeam: 'China',
+        awayTeam: 'North Korea',
+        scorer: 'Hwang Sang-hoi',
+        minute: null,
+        ownGoal: 0,
+        penalty: 0,
+      };
+
+      await db.run(
+        `INSERT INTO goalscorers (date, homeTeam, awayTeam, scorer, minute, ownGoal, penalty)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          goalscorer.date,
+          goalscorer.homeTeam,
+          goalscorer.awayTeam,
+          goalscorer.scorer,
+          goalscorer.minute,
+          goalscorer.ownGoal,
+          goalscorer.penalty,
+        ]
+      );
+
+      const snapshot = await db.getSnapshot();
+      expect(snapshot.goalscorersCount).toBe(1);
+
+      const retrieved = await db.get(
+        'SELECT * FROM goalscorers WHERE date = ? AND homeTeam = ? AND awayTeam = ? AND scorer = ?',
+        [goalscorer.date, goalscorer.homeTeam, goalscorer.awayTeam, goalscorer.scorer]
+      );
+
+      expect(retrieved.minute).toBeNull();
+      expect(retrieved.penalty).toBe(0);
+    });
+
     it('should load shootouts with foreign key relationships', async () => {
       // Insert a result first
       await db.run(

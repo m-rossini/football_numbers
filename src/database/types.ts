@@ -19,7 +19,7 @@ export interface Goalscorer {
   homeTeam: string;
   awayTeam: string;
   scorer: string;
-  minute: number;
+  minute: number | null;
   ownGoal: number;
   penalty: number;
 }
