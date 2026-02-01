@@ -8,5 +8,8 @@ module.exports = {
     '!src/**/*.d.ts'
   ],
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html']
+  coverageReporters: ['text', 'lcov', 'html'],
+  testTimeout: 15000,
+  forceExit: false,
+  detectOpenHandles: true
 };

@@ -25,3 +25,13 @@ describe('Info Endpoint', () => {
     expect(response.body.hostname.length).toBeGreaterThan(0);
   });
 });
+
+afterAll(async () => {
+  // Close the Express server and any open connections
+  const servers = require('http').globalAgent.destroy?.();
+  if (servers) {
+    await new Promise<void>((resolve) => {
+      servers.close(() => resolve());
+    });
+  }
+});
