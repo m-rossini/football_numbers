@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { parse } from 'csv-parse/sync';
 import { FootballDatabase } from './database';
-import { Result, Goalscorer, Shootout, FormerName, LoaderContext } from './types';
+import { LoaderContext } from './types';
 
 /**
  * Unified data loader for staging tables
@@ -94,9 +94,9 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
     errorMessages: {
       missingFields: (lineNumber: number, fields: string[], record: any) =>
         `❌ MISSING FIELD(S) in results.csv at line ${lineNumber}: [${fields.join(', ')}] - Record: ${JSON.stringify(record)}`,
-      transformError: (lineNumber: number, error: any, record: any) =>
+      transformError: (lineNumber: number, error: any, _record: any) =>
         `❌ TRANSFORM ERROR in results.csv at line ${lineNumber}: ${error.message}`,
-      insertError: (lineNumber: number, error: any, record: any) =>
+      insertError: (lineNumber: number, _error: any, record: any) =>
         `❌ DATABASE ERROR in results.csv at line ${lineNumber}: ${record.date} ${record.home_team} vs ${record.away_team}`,
     },
   };
@@ -115,7 +115,7 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     requiredFields: ['date', 'home_team', 'away_team', 'scorer'],
     optionalFields: ['minute', 'own_goal', 'penalty'],
-    recordTransformer: (record: any, lineNumber: number): any[] | null => {
+    recordTransformer: (record: any, _lineNumber: number): any[] | null => {
       const minuteValue = record.minute && record.minute.trim() ? parseInt(record.minute, 10) : null;
 
       return [
@@ -131,9 +131,9 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
     errorMessages: {
       missingFields: (lineNumber: number, fields: string[], record: any) =>
         `❌ MISSING FIELD(S) in goalscorers.csv at line ${lineNumber}: [${fields.join(', ')}] - Record: ${JSON.stringify(record)}`,
-      transformError: (lineNumber: number, error: any, record: any) =>
+      transformError: (lineNumber: number, error: any, _record: any) =>
         `❌ TRANSFORM ERROR in goalscorers.csv at line ${lineNumber}: ${error.message}`,
-      insertError: (lineNumber: number, error: any, record: any) =>
+      insertError: (lineNumber: number, _error: any, record: any) =>
         `❌ DATABASE ERROR in goalscorers.csv at line ${lineNumber}: Foreign key constraint failed\n   Date: ${record.date}, Home: ${record.home_team}, Away: ${record.away_team}, Scorer: ${record.scorer}\n   The result record (${record.date} ${record.home_team} vs ${record.away_team}) may not exist in results table`,
     },
   };
@@ -151,15 +151,15 @@ export async function loadShootouts(db: FootballDatabase, filePath: string): Pro
     sqlStatement: `INSERT INTO shootouts (date, homeTeam, awayTeam, winner)
                     VALUES (?, ?, ?, ?)`,
     requiredFields: ['date', 'home_team', 'away_team', 'winner'],
-    recordTransformer: (record: any, lineNumber: number): any[] | null => {
+    recordTransformer: (record: any, _lineNumber: number): any[] | null => {
       return [record.date, record.home_team, record.away_team, record.winner];
     },
     errorMessages: {
       missingFields: (lineNumber: number, fields: string[], record: any) =>
         `❌ MISSING FIELD(S) in shootouts.csv at line ${lineNumber}: [${fields.join(', ')}] - Record: ${JSON.stringify(record)}`,
-      transformError: (lineNumber: number, error: any, record: any) =>
+      transformError: (lineNumber: number, error: any, _record: any) =>
         `❌ TRANSFORM ERROR in shootouts.csv at line ${lineNumber}: ${error.message}`,
-      insertError: (lineNumber: number, error: any, record: any) =>
+      insertError: (lineNumber: number, _error: any, record: any) =>
         `❌ DATABASE ERROR in shootouts.csv at line ${lineNumber}: Foreign key constraint failed\n   Date: ${record.date}, Home: ${record.home_team}, Away: ${record.away_team}\n   The result record (${record.date} ${record.home_team} vs ${record.away_team}) may not exist in results table`,
     },
   };
@@ -177,7 +177,7 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
     sqlStatement: `INSERT INTO formerNames (currentName, formerName, startDate, endDate)
                     VALUES (?, ?, ?, ?)`,
     requiredFields: ['current', 'former', 'start_date', 'end_date'],
-    recordTransformer: (record: any, lineNumber: number): any[] | null => {
+    recordTransformer: (record: any, _lineNumber: number): any[] | null => {
       return [
         record.current.trim(),
         record.former.trim(),
@@ -188,9 +188,9 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
     errorMessages: {
       missingFields: (lineNumber: number, fields: string[], record: any) =>
         `❌ MISSING FIELD(S) in former_names.csv at line ${lineNumber}: [${fields.join(', ')}] - Record: ${JSON.stringify(record)}`,
-      transformError: (lineNumber: number, error: any, record: any) =>
+      transformError: (lineNumber: number, error: any, _record: any) =>
         `❌ TRANSFORM ERROR in former_names.csv at line ${lineNumber}: ${error.message}`,
-      insertError: (lineNumber: number, error: any, record: any) =>
+      insertError: (lineNumber: number, _error: any, record: any) =>
         `❌ DATABASE ERROR in former_names.csv at line ${lineNumber}: Failed to insert\n   Name: ${record.current}, Former Name: ${record.former || 'NULL'}`,
     },
   };
