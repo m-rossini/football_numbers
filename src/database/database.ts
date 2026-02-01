@@ -99,8 +99,11 @@ export class FootballDatabase {
         this.db.run(
           `
           CREATE TABLE IF NOT EXISTS formerNames (
-            name TEXT PRIMARY KEY,
-            formerName TEXT
+            currentName TEXT NOT NULL,
+            formerName TEXT NOT NULL,
+            startDate TEXT NOT NULL,
+            endDate TEXT NOT NULL,
+            PRIMARY KEY (currentName, formerName)
           )
         `,
           (err) => {

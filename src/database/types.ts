@@ -32,8 +32,10 @@ export interface Shootout {
 }
 
 export interface FormerName {
-  name: string;
-  formerName: string | null;
+  currentName: string;
+  formerName: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface DatabaseSnapshot {

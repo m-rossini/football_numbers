@@ -244,30 +244,31 @@ export async function loadFormerNames(db: FootballDatabase, filePath: string): P
     const record = records[i];
     const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
 
-    // Validate required field: name
-    if (!record.name || !record.name.trim()) {
-      console.error(
-        `❌ MISSING FIELD(S) in former_names.csv at line ${lineNumber}: [name] - Record: ${JSON.stringify(record)}`
-      );
-      continue;
-    }
-
-    const formerNameValue = record.former_name && record.former_name.trim() ? record.former_name : null;
+    // if (!record.current || !record.current.trim()) {
+    //   console.error(
+    //     `❌ MISSING FIELD(S) in former_names.csv at line ${lineNumber}: [name] - Record: ${JSON.stringify(record)}`
+    //   );
+    //   continue;
+    // }
     const formerName: FormerName = {
-      name: record.name,
-      formerName: formerNameValue,
+      currentName: record.current.trim(),
+      formerName: record.former.trim(),
+      startDate: record.start_date,
+      endDate: record.end_date,
     };
-
+         
     try {
-      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
-        formerName.name,
+      await db.run('INSERT INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)', [
+        formerName.currentName,
         formerName.formerName,
+        formerName.startDate,
+        formerName.endDate,
       ]);
       count++;
     } catch (err) {
       console.error(
         `❌ DATABASE ERROR in former_names.csv at line ${lineNumber}: Failed to insert`,
-        `\n   Name: ${formerName.name}, Former Name: ${formerName.formerName || 'NULL'}`,
+        `\n   Name: ${formerName.currentName}, Former Name: ${formerName.formerName || 'NULL'}`,
         `\n   Error:`,
         err
       );
