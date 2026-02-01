@@ -62,7 +62,6 @@ export async function loadDataIntoStaging(db: FootballDatabase, context: LoaderC
  */
 export async function loadResults(db: FootballDatabase, filePath: string): Promise<number> {
   const context: LoaderContext = {
-    fileName: 'results.csv',
     filePath,
     sqlStatement: `INSERT INTO results (date, homeTeam, awayTeam, homeGoals, awayGoals, tournament, city, country, neutral)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -109,12 +108,10 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
  */
 export async function loadGoalscorers(db: FootballDatabase, filePath: string): Promise<number> {
   const context: LoaderContext = {
-    fileName: 'goalscorers.csv',
     filePath,
     sqlStatement: `INSERT INTO goalscorers (date, homeTeam, awayTeam, scorer, minute, ownGoal, penalty)
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     requiredFields: ['date', 'home_team', 'away_team', 'scorer'],
-    optionalFields: ['minute', 'own_goal', 'penalty'],
     recordTransformer: (record: any, _lineNumber: number): any[] | null => {
       const minuteValue = record.minute && record.minute.trim() ? parseInt(record.minute, 10) : null;
 
@@ -146,7 +143,6 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
  */
 export async function loadShootouts(db: FootballDatabase, filePath: string): Promise<number> {
   const context: LoaderContext = {
-    fileName: 'shootouts.csv',
     filePath,
     sqlStatement: `INSERT INTO shootouts (date, homeTeam, awayTeam, winner)
                     VALUES (?, ?, ?, ?)`,
@@ -172,7 +168,6 @@ export async function loadShootouts(db: FootballDatabase, filePath: string): Pro
  */
 export async function loadFormerNames(db: FootballDatabase, filePath: string): Promise<number> {
   const context: LoaderContext = {
-    fileName: 'former_names.csv',
     filePath,
     sqlStatement: `INSERT INTO formerNames (currentName, formerName, startDate, endDate)
                     VALUES (?, ?, ?, ?)`,

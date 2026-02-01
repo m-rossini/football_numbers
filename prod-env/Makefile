@@ -6,7 +6,7 @@ CONTAINER_NAME := prod-env_prod_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
-DATA_PROJECT_ROOT := $(shell dirname $(PROJECT_ROOT))/international_results
+DATA_PROJECT_ROOT ?= $(shell dirname $(PROJECT_ROOT))/international_results
 PROD_HOSTNAME := football-numbers-prod.local
 
 help:

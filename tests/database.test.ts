@@ -224,7 +224,7 @@ describe('Database', () => {
       expect(retrieved.formerName).toBe("Côte d'Ivoire");
     });
 
-    it('should load former names with missing formerName value', async () => {
+    it('should load former names with all fields populated', async () => {
       const formerName: FormerName = {
         currentName: 'Myanmar',
         formerName: 'Burma',

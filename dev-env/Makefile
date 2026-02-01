@@ -6,7 +6,7 @@ CONTAINER_NAME := dev-env_dev_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
-DATA_PROJECT_ROOT := $(shell dirname $(PROJECT_ROOT))/international_results
+DATA_PROJECT_ROOT ?= $(shell dirname $(PROJECT_ROOT))/international_results
 DEV_HOSTNAME := football-numbers-dev.local
 
 help:

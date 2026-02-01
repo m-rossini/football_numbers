@@ -5,12 +5,12 @@ services:
     image: football-numbers-prod:latest
     container_name: prod-env_prod_1
     build:
-      context: ${PROJECT_ROOT:-.}
+      context: ${PROJECT_ROOT:?ERROR: PROJECT_ROOT variable not set. Please set it before running compose.}
       dockerfile: ./prod-env/Containerfile
     ports:
       - "3030:3000"
     volumes:
-      - ${DATA_PROJECT_ROOT:-.}:/data:ro,z
+      - ${DATA_PROJECT_ROOT:?ERROR: DATA_PROJECT_ROOT variable not set. Please set it before running compose.}:/data:ro,z
     hostname: ${PROD_HOSTNAME}
     environment:
       - NODE_ENV=production
