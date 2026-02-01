@@ -15,12 +15,14 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
 
   let count = 0;
   for (const record of records) {
+    const homeGoalsValue = record.home_score && record.home_score.trim() ? parseInt(record.home_score, 10) : null;
+    const awayGoalsValue = record.away_score && record.away_score.trim() ? parseInt(record.away_score, 10) : null;
     const result: Result = {
       date: record.date,
       homeTeam: record.home_team,
       awayTeam: record.away_team,
-      homeGoals: parseInt(record.home_score, 10),
-      awayGoals: parseInt(record.away_score, 10),
+      homeGoals: homeGoalsValue,
+      awayGoals: awayGoalsValue,
       tournament: record.tournament,
       city: record.city,
       country: record.country,
