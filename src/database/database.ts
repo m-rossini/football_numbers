@@ -53,6 +53,8 @@ export class FootballDatabase {
   initialize(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
+        let errorOccurred = false;
+
         // Results table
         this.db.run(`
           CREATE TABLE IF NOT EXISTS results (
@@ -67,7 +69,12 @@ export class FootballDatabase {
             neutral INTEGER DEFAULT 0,
             PRIMARY KEY (date, homeTeam, awayTeam)
           )
-        `);
+        `, (err) => {
+          if (err && !errorOccurred) {
+            errorOccurred = true;
+            reject(err);
+          }
+        });
 
         // Goalscorers table
         this.db.run(`
@@ -81,7 +88,12 @@ export class FootballDatabase {
             penalty INTEGER DEFAULT 0,
             FOREIGN KEY (date, homeTeam, awayTeam) REFERENCES results(date, homeTeam, awayTeam)
           )
-        `);
+        `, (err) => {
+          if (err && !errorOccurred) {
+            errorOccurred = true;
+            reject(err);
+          }
+        });
 
         // Shootouts table
         this.db.run(`
@@ -93,7 +105,12 @@ export class FootballDatabase {
             PRIMARY KEY (date, homeTeam, awayTeam),
             FOREIGN KEY (date, homeTeam, awayTeam) REFERENCES results(date, homeTeam, awayTeam)
           )
-        `);
+        `, (err) => {
+          if (err && !errorOccurred) {
+            errorOccurred = true;
+            reject(err);
+          }
+        });
 
         // Former names table
         this.db.run(
@@ -107,8 +124,12 @@ export class FootballDatabase {
           )
         `,
           (err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err && !errorOccurred) {
+              errorOccurred = true;
+              reject(err);
+            } else if (!errorOccurred) {
+              resolve();
+            }
           }
         );
       });
@@ -275,56 +296,61 @@ export class FootballDatabase {
           // Otherwise assume it's a SQLite database file
           // Create a temporary database connection to read from the file
           const tempDb = new sqlite3.Database(filePath);
-          tempDb.serialize(() => {
-            // Copy all data from the loaded database
-            tempDb.all('SELECT * FROM results', async (err, rows: any[]) => {
-              if (!err && rows) {
-                for (const row of rows) {
-                  await this.run(
-                    'INSERT OR REPLACE INTO results VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [row.date, row.homeTeam, row.awayTeam, row.homeGoals, row.awayGoals, row.tournament, row.city, row.country, row.neutral]
-                  );
-                }
-              }
 
-              tempDb.all('SELECT * FROM goalscorers', async (err, rows: any[]) => {
-                if (!err && rows) {
-                  for (const row of rows) {
-                    await this.run(
-                      'INSERT OR REPLACE INTO goalscorers VALUES (?, ?, ?, ?, ?, ?, ?)',
-                      [row.date, row.homeTeam, row.awayTeam, row.scorer, row.minute, row.ownGoal, row.penalty]
-                    );
-                  }
-                }
-
-                tempDb.all('SELECT * FROM shootouts', async (err, rows: any[]) => {
-                  if (!err && rows) {
-                    for (const row of rows) {
-                      await this.run(
-                        'INSERT OR REPLACE INTO shootouts VALUES (?, ?, ?, ?)',
-                        [row.date, row.homeTeam, row.awayTeam, row.winner]
-                      );
-                    }
-                  }
-
-                  tempDb.all('SELECT * FROM formerNames', async (err, rows: any[]) => {
-                    if (!err && rows) {
-                      for (const row of rows) {
-                        await this.run('INSERT OR REPLACE INTO formerNames VALUES (?, ?)', [
-                          row.name,
-                          row.formerName,
-                        ]);
-                      }
-                    }
-
-                    tempDb.close(() => {
-                      resolve();
-                    });
-                  });
-                });
+          // Helper to promisify tempDb.all
+          const queryTempDb = (sql: string): Promise<any[]> =>
+            new Promise((resolve, reject) => {
+              tempDb.all(sql, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
               });
             });
-          });
+
+          // Copy all data from the loaded database
+          (async () => {
+            try {
+              const results = await queryTempDb('SELECT * FROM results');
+              for (const row of results) {
+                await this.run(
+                  'INSERT OR REPLACE INTO results VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                  [row.date, row.homeTeam, row.awayTeam, row.homeGoals, row.awayGoals, row.tournament, row.city, row.country, row.neutral]
+                );
+              }
+
+              const goalscorers = await queryTempDb('SELECT * FROM goalscorers');
+              for (const row of goalscorers) {
+                await this.run(
+                  'INSERT OR REPLACE INTO goalscorers VALUES (?, ?, ?, ?, ?, ?, ?)',
+                  [row.date, row.homeTeam, row.awayTeam, row.scorer, row.minute, row.ownGoal, row.penalty]
+                );
+              }
+
+              const shootouts = await queryTempDb('SELECT * FROM shootouts');
+              for (const row of shootouts) {
+                await this.run(
+                  'INSERT OR REPLACE INTO shootouts VALUES (?, ?, ?, ?)',
+                  [row.date, row.homeTeam, row.awayTeam, row.winner]
+                );
+              }
+
+              const formerNames = await queryTempDb('SELECT * FROM formerNames');
+              for (const row of formerNames) {
+                await this.run(
+                  'INSERT OR REPLACE INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)',
+                  [row.currentName, row.formerName, row.startDate || '', row.endDate || '']
+                );
+              }
+
+              tempDb.close((err) => {
+                if (err) reject(err);
+                else resolve();
+              });
+            } catch (err) {
+              tempDb.close(() => {
+                reject(err);
+              });
+            }
+          })();
         }
       } catch (err) {
         reject(err);
@@ -389,7 +415,10 @@ export class FootballDatabase {
 
     if (data.formerNames) {
       for (const row of data.formerNames as any[]) {
-        await this.run('INSERT OR REPLACE INTO formerNames VALUES (?, ?)', [row.name, row.formerName]);
+        await this.run(
+          'INSERT OR REPLACE INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)',
+          [row.currentName, row.formerName, row.startDate || '', row.endDate || '']
+        );
       }
     }
   }
