@@ -6,11 +6,19 @@ import { dirname } from 'path';
 export class FootballDatabase {
   private db: sqlite3.Database;
   private readyPromise: Promise<void>;
+  private dbLocation: string;
 
   constructor(dbPath?: string) {
     // Use in-memory database if no path provided, otherwise use file-based
-    const dbLocation = dbPath ? dbPath : ':memory:';
-    this.db = new sqlite3.Database(dbLocation, (err) => {
+    this.dbLocation = dbPath ? dbPath : ':memory:';
+    
+    if (this.dbLocation === ':memory:') {
+      console.log('📊 Database: IN-MEMORY (all data will be lost on restart)');
+    } else {
+      console.log(`📁 Database: FILE-BASED at ${this.dbLocation}`);
+    }
+
+    this.db = new sqlite3.Database(this.dbLocation, (err) => {
       if (err) {
         console.error('Error opening database:', err);
       }
@@ -388,9 +396,12 @@ export class FootballDatabase {
 let instance: FootballDatabase | null = null;
 
 export async function initializeDatabase(dbPath?: string): Promise<FootballDatabase> {
+  const displayPath = dbPath ? `file: ${dbPath}` : 'in-memory';
+  console.log(`🔧 Initializing database (${displayPath})`);
   instance = new FootballDatabase(dbPath);
   await instance.ready();
   await instance.initialize();
+  console.log('✓ Database initialized and schema created');
   return instance;
 }
 
