@@ -201,20 +201,24 @@ describe('Database', () => {
 
     it('should load former names', async () => {
       const formerName: FormerName = {
-        name: 'Ivory Coast',
+        currentName: 'Ivory Coast',
         formerName: "Côte d'Ivoire",
+        startDate: '1960-01-01',
+        endDate: '1986-01-01',
       };
 
-      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
-        formerName.name,
+      await db.run('INSERT INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)', [
+        formerName.currentName,
         formerName.formerName,
+        formerName.startDate,
+        formerName.endDate,
       ]);
 
       const snapshot = await db.getSnapshot();
       expect(snapshot.formerNamesCount).toBe(1);
 
-      const retrieved = await db.get('SELECT * FROM formerNames WHERE name = ?', [
-        formerName.name,
+      const retrieved = await db.get('SELECT * FROM formerNames WHERE currentName = ?', [
+        formerName.currentName,
       ]);
 
       expect(retrieved.formerName).toBe("Côte d'Ivoire");
@@ -222,23 +226,27 @@ describe('Database', () => {
 
     it('should load former names with missing formerName value', async () => {
       const formerName: FormerName = {
-        name: 'Myanmar',
-        formerName: null,
+        currentName: 'Myanmar',
+        formerName: 'Burma',
+        startDate: '1948-01-04',
+        endDate: '1989-06-18',
       };
 
-      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
-        formerName.name,
+      await db.run('INSERT INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)', [
+        formerName.currentName,
         formerName.formerName,
+        formerName.startDate,
+        formerName.endDate,
       ]);
 
       const snapshot = await db.getSnapshot();
       expect(snapshot.formerNamesCount).toBe(1);
 
-      const retrieved = await db.get('SELECT * FROM formerNames WHERE name = ?', [
-        formerName.name,
+      const retrieved = await db.get('SELECT * FROM formerNames WHERE currentName = ?', [
+        formerName.currentName,
       ]);
 
-      expect(retrieved.formerName).toBeNull();
+      expect(retrieved.formerName).toBe('Burma');
     });
   });
 
@@ -279,9 +287,11 @@ describe('Database', () => {
         ['1872-03-30', 'Scotland', 'England', 0, 0, 'Friendly', 'Glasgow', 'Scotland', 0]
       );
 
-      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
+      await db.run('INSERT INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)', [
         'Brazil',
         'United States of Brazil',
+        '1822-09-07',
+        '1889-11-15',
       ]);
 
       let snapshot = await db.getSnapshot();
@@ -306,9 +316,11 @@ describe('Database', () => {
         ['1872-03-30', 'Scotland', 'England', 0, 0, 'Friendly', 'Glasgow', 'Scotland', 0]
       );
 
-      await db.run('INSERT INTO formerNames (name, formerName) VALUES (?, ?)', [
+      await db.run('INSERT INTO formerNames (currentName, formerName, startDate, endDate) VALUES (?, ?, ?, ?)', [
         'Brazil',
         'United States of Brazil',
+        '1822-09-07',
+        '1889-11-15',
       ]);
 
       let snapshot = await db.getSnapshot();

@@ -45,3 +45,47 @@ export interface DatabaseSnapshot {
   formerNamesCount: number;
   lastUpdated: string;
 }
+/**
+ * Context object for unified data loading into staging tables
+ */
+export interface LoaderContext {
+  /**
+   * Name of the CSV file for error messages (e.g., "results.csv")
+   */
+  fileName: string;
+
+  /**
+   * Path to the CSV file to load
+   */
+  filePath: string;
+
+  /**
+   * SQL INSERT statement with placeholders for parameters
+   */
+  sqlStatement: string;
+
+  /**
+   * List of required fields that must be present in every record
+   */
+  requiredFields: string[];
+
+  /**
+   * List of optional fields (can be undefined, null, or empty)
+   */
+  optionalFields?: string[];
+
+  /**
+   * Function to transform raw CSV record into database-ready values
+   * Returns the array of values to be inserted, or null if record should be skipped
+   */
+  recordTransformer: (record: any, lineNumber: number) => any[] | null;
+
+  /**
+   * Custom error messages for specific error conditions
+   */
+  errorMessages: {
+    missingFields: (lineNumber: number, fields: string[], record: any) => string;
+    transformError: (lineNumber: number, error: any, record: any) => string;
+    insertError: (lineNumber: number, error: any, record: any) => string;
+  };
+}
