@@ -27,7 +27,7 @@ build:
 
 run:
 	@echo "Starting development container: $(CONTAINER_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) DATA_PROJECT_ROOT=$(DATA_PROJECT_ROOT) podman-compose -f dev-compose.yml up -d
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) DATA_PROJECT_ROOT=$(DATA_PROJECT_ROOT) DEV_HOSTNAME=$(DEV_HOSTNAME) podman-compose -f dev-compose.yml up -d
 
 clean:
 	@echo "Stopping and removing development environment"
