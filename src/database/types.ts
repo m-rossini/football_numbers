@@ -6,8 +6,8 @@ export interface Result {
   date: string;
   homeTeam: string;
   awayTeam: string;
-  homeGoals: number | null;
-  awayGoals: number | null;
+  homeGoals: number;
+  awayGoals: number;
   tournament: string;
   city: string;
   country: string;

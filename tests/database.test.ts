@@ -76,47 +76,6 @@ describe('Database', () => {
       expect(retrieved).toEqual(testResult);
     });
 
-    it('should load results with missing goal values', async () => {
-      const testResult: Result = {
-        date: '2026-01-29',
-        homeTeam: 'Bolivia',
-        awayTeam: 'Dominican Republic',
-        homeGoals: null,
-        awayGoals: null,
-        tournament: 'Friendly',
-        city: 'La Paz',
-        country: 'Bolivia',
-        neutral: 0,
-      };
-
-      await db.run(
-        `INSERT INTO results (date, homeTeam, awayTeam, homeGoals, awayGoals, tournament, city, country, neutral)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          testResult.date,
-          testResult.homeTeam,
-          testResult.awayTeam,
-          testResult.homeGoals,
-          testResult.awayGoals,
-          testResult.tournament,
-          testResult.city,
-          testResult.country,
-          testResult.neutral,
-        ]
-      );
-
-      const snapshot = await db.getSnapshot();
-      expect(snapshot.resultsCount).toBe(1);
-
-      const retrieved = await db.get(
-        'SELECT * FROM results WHERE date = ? AND homeTeam = ? AND awayTeam = ?',
-        [testResult.date, testResult.homeTeam, testResult.awayTeam]
-      );
-
-      expect(retrieved.homeGoals).toBeNull();
-      expect(retrieved.awayGoals).toBeNull();
-    });
-
     it('should load goalscorers with foreign key relationships', async () => {
       // Insert a result first
       await db.run(

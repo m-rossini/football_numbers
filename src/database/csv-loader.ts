@@ -42,9 +42,8 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
       continue;
     }
 
-    // Parse scores, default to 0 if empty/invalid
-    const homeGoals = record.home_score && record.home_score.trim() !== '' ? parseInt(record.home_score, 10) : 0;
-    const awayGoals = record.away_score && record.away_score.trim() !== '' ? parseInt(record.away_score, 10) : 0;
+    const homeGoals = record.home_score
+    const awayGoals = record.away_score
 
     // Skip records with invalid scores (NaN)
     if (isNaN(homeGoals) || isNaN(awayGoals)) {
@@ -105,7 +104,29 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
   }) as any[];
 
   let count = 0;
-  for (const record of records) {
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
+
+    // Validate required fields
+    const requiredFields = {
+      date: record.date,
+      home_team: record.home_team,
+      away_team: record.away_team,
+      scorer: record.scorer,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([, value]) => value === undefined || value === null || (typeof value === 'string' && value.trim() === ''))
+      .map(([field]) => field);
+
+    if (missingFields.length > 0) {
+      console.error(
+        `❌ MISSING FIELD(S) in goalscorers.csv at line ${lineNumber}: [${missingFields.join(', ')}] - Record: ${JSON.stringify(record)}`
+      );
+      continue;
+    }
+
     const minuteValue = record.minute && record.minute.trim() ? parseInt(record.minute, 10) : null;
     const goalscorer: Goalscorer = {
       date: record.date,
@@ -133,7 +154,13 @@ export async function loadGoalscorers(db: FootballDatabase, filePath: string): P
       );
       count++;
     } catch (err) {
-      console.error(`Failed to load goalscorer: ${goalscorer.date} ${goalscorer.scorer}`, err);
+      console.error(
+        `❌ DATABASE ERROR in goalscorers.csv at line ${lineNumber}: Foreign key constraint failed`,
+        `\n   Date: ${goalscorer.date}, Home: ${goalscorer.homeTeam}, Away: ${goalscorer.awayTeam}, Scorer: ${goalscorer.scorer}`,
+        `\n   The result record (${goalscorer.date} ${goalscorer.homeTeam} vs ${goalscorer.awayTeam}) may not exist in results table`,
+        `\n   Error:`,
+        err
+      );
     }
   }
 
