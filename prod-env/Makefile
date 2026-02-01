@@ -6,6 +6,7 @@ CONTAINER_NAME := prod-env_prod_1
 DOCKERFILE := Containerfile
 MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 PROJECT_ROOT := $(shell dirname $(MAKEFILE_DIR))
+DATA_PROJECT_ROOT := $(shell dirname $(PROJECT_ROOT))/international_results
 PROD_HOSTNAME := football-numbers-prod.local
 
 help:
@@ -21,12 +22,12 @@ help:
 
 build:
 	@echo "Building production container image: $(IMAGE_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) podman-compose -f prod-compose.yml build
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) DATA_PROJECT_ROOT=$(DATA_PROJECT_ROOT) podman-compose -f prod-compose.yml build
 	@echo "✓ Image built successfully"
 
 run:
 	@echo "Starting production container: $(CONTAINER_NAME)"
-	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) PROD_HOSTNAME=$(PROD_HOSTNAME) podman-compose -f prod-compose.yml up -d
+	cd $(MAKEFILE_DIR) && PROJECT_ROOT=$(PROJECT_ROOT) DATA_PROJECT_ROOT=$(DATA_PROJECT_ROOT) PROD_HOSTNAME=$(PROD_HOSTNAME) podman-compose -f prod-compose.yml up -d
 
 clean:
 	@echo "Stopping and removing production environment"
