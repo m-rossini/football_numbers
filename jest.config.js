@@ -10,6 +10,6 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   testTimeout: 15000,
-  forceExit: true,
-  detectOpenHandles: false
+  forceExit: false,
+  detectOpenHandles: true
 };
