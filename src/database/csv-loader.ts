@@ -14,13 +14,43 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
   }) as any[];
 
   let count = 0;
-  for (const record of records) {
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const lineNumber = i + 2; // +2 because CSV has header and arrays are 0-indexed
+
+    // Validate required fields
+    const requiredFields = {
+      date: record.date,
+      home_team: record.home_team,
+      away_team: record.away_team,
+      home_score: record.home_score,
+      away_score: record.away_score,
+      tournament: record.tournament,
+      city: record.city,
+      country: record.country,
+      neutral: record.neutral,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([, value]) => value === undefined || value === null || (typeof value === 'string' && value.trim() === ''))
+      .map(([field]) => field);
+
+    if (missingFields.length > 0) {
+      console.error(
+        `❌ MISSING FIELD(S) in results.csv at line ${lineNumber}: [${missingFields.join(', ')}] - Record: ${JSON.stringify(record)}`
+      );
+      continue;
+    }
+
     // Parse scores, default to 0 if empty/invalid
     const homeGoals = record.home_score && record.home_score.trim() !== '' ? parseInt(record.home_score, 10) : 0;
     const awayGoals = record.away_score && record.away_score.trim() !== '' ? parseInt(record.away_score, 10) : 0;
 
     // Skip records with invalid scores (NaN)
     if (isNaN(homeGoals) || isNaN(awayGoals)) {
+      console.error(
+        `❌ INVALID SCORE(S) in results.csv at line ${lineNumber}: homeGoals=${record.home_score}, awayGoals=${record.away_score} - Record: ${JSON.stringify(record)}`
+      );
       continue;
     }
 
@@ -54,7 +84,10 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
       );
       count++;
     } catch (err) {
-      console.error(`Failed to load result: ${result.date} ${result.homeTeam} vs ${result.awayTeam}`, err);
+      console.error(
+        `❌ DATABASE ERROR in results.csv at line ${lineNumber}: ${result.date} ${result.homeTeam} vs ${result.awayTeam}`,
+        err
+      );
     }
   }
 
