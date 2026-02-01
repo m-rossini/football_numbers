@@ -223,9 +223,10 @@ export class FootballDatabase {
     mkdirSync(dir, { recursive: true });
 
     return new Promise((resolve, reject) => {
-      // For in-memory databases, we need to create a backup using VACUUM
+      // For in-memory databases, we need to create a backup using JSON
       // For file-based databases, we can use the built-in backup mechanism
-      if (this.db.filename === ':memory:') {
+      const dbFilename = (this.db as any).filename;
+      if (!dbFilename || dbFilename === ':memory:') {
         // Export all data to JSON and save it
         this.exportToJSON(filePath)
           .then(() => resolve())
@@ -234,7 +235,7 @@ export class FootballDatabase {
         // For file-based databases, just create a copy
         const fs = require('fs');
         try {
-          const sourceFile = this.db.filename || ':memory:';
+          const sourceFile = dbFilename;
           const data = fs.readFileSync(sourceFile);
           fs.writeFileSync(filePath, data);
           resolve();
@@ -265,7 +266,7 @@ export class FootballDatabase {
           const tempDb = new sqlite3.Database(filePath);
           tempDb.serialize(() => {
             // Copy all data from the loaded database
-            tempDb.all('SELECT * FROM results', async (err, rows) => {
+            tempDb.all('SELECT * FROM results', async (err, rows: any[]) => {
               if (!err && rows) {
                 for (const row of rows) {
                   await this.run(
@@ -275,7 +276,7 @@ export class FootballDatabase {
                 }
               }
 
-              tempDb.all('SELECT * FROM goalscorers', async (err, rows) => {
+              tempDb.all('SELECT * FROM goalscorers', async (err, rows: any[]) => {
                 if (!err && rows) {
                   for (const row of rows) {
                     await this.run(
@@ -285,7 +286,7 @@ export class FootballDatabase {
                   }
                 }
 
-                tempDb.all('SELECT * FROM shootouts', async (err, rows) => {
+                tempDb.all('SELECT * FROM shootouts', async (err, rows: any[]) => {
                   if (!err && rows) {
                     for (const row of rows) {
                       await this.run(
@@ -295,7 +296,7 @@ export class FootballDatabase {
                     }
                   }
 
-                  tempDb.all('SELECT * FROM formerNames', async (err, rows) => {
+                  tempDb.all('SELECT * FROM formerNames', async (err, rows: any[]) => {
                     if (!err && rows) {
                       for (const row of rows) {
                         await this.run('INSERT OR REPLACE INTO formerNames VALUES (?, ?)', [
@@ -347,7 +348,7 @@ export class FootballDatabase {
     const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
     if (data.results) {
-      for (const row of data.results) {
+      for (const row of data.results as any[]) {
         await this.run(
           'INSERT OR REPLACE INTO results VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
           [row.date, row.homeTeam, row.awayTeam, row.homeGoals, row.awayGoals, row.tournament, row.city, row.country, row.neutral]
@@ -356,7 +357,7 @@ export class FootballDatabase {
     }
 
     if (data.goalscorers) {
-      for (const row of data.goalscorers) {
+      for (const row of data.goalscorers as any[]) {
         await this.run(
           'INSERT OR REPLACE INTO goalscorers VALUES (?, ?, ?, ?, ?, ?, ?)',
           [row.date, row.homeTeam, row.awayTeam, row.scorer, row.minute, row.ownGoal, row.penalty]
@@ -365,7 +366,7 @@ export class FootballDatabase {
     }
 
     if (data.shootouts) {
-      for (const row of data.shootouts) {
+      for (const row of data.shootouts as any[]) {
         await this.run('INSERT OR REPLACE INTO shootouts VALUES (?, ?, ?, ?)', [
           row.date,
           row.homeTeam,
@@ -376,7 +377,7 @@ export class FootballDatabase {
     }
 
     if (data.formerNames) {
-      for (const row of data.formerNames) {
+      for (const row of data.formerNames as any[]) {
         await this.run('INSERT OR REPLACE INTO formerNames VALUES (?, ?)', [row.name, row.formerName]);
       }
     }

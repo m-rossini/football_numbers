@@ -1,6 +1,5 @@
 import express, { Express } from 'express';
 import os from 'os';
-import path from 'path';
 import { initializeDatabase, getDatabase } from './database/index';
 import { loadAllData } from './database/csv-loader';
 
