@@ -66,6 +66,22 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
     };
 
     try {
+      // Check if record already exists
+      const existing = await db.get(
+        'SELECT * FROM results WHERE date = ? AND homeTeam = ? AND awayTeam = ?',
+        [result.date, result.homeTeam, result.awayTeam]
+      );
+
+      if (existing) {
+        console.warn(
+          `⚠️  DUPLICATE RECORD in results.csv at line ${lineNumber}: Record already exists`,
+          `\n   Date: '${result.date}' (${result.date.length} chars)`,
+          `\n   Home: '${result.homeTeam}' (${result.homeTeam.length} chars)`,
+          `\n   Away: '${result.awayTeam}' (${result.awayTeam.length} chars)`
+        );
+        continue;
+      }
+
       await db.run(
         `INSERT INTO results (date, homeTeam, awayTeam, homeGoals, awayGoals, tournament, city, country, neutral)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -83,10 +99,20 @@ export async function loadResults(db: FootballDatabase, filePath: string): Promi
       );
       count++;
     } catch (err) {
-      console.error(
-        `❌ DATABASE ERROR in results.csv at line ${lineNumber}: ${result.date} ${result.homeTeam} vs ${result.awayTeam}`,
-        err
-      );
+      // Check if it's a UNIQUE constraint error and provide detailed diagnostics
+      if (err instanceof Error && err.message.includes('UNIQUE constraint')) {
+        console.error(
+          `❌ UNIQUE CONSTRAINT VIOLATION in results.csv at line ${lineNumber}`,
+          `\n   Attempted: ${result.date} ${result.homeTeam} vs ${result.awayTeam}`,
+          `\n   Values: date='${result.date}' (${result.date.length}), homeTeam='${result.homeTeam}' (${result.homeTeam.length}), awayTeam='${result.awayTeam}' (${result.awayTeam.length})`,
+          `\n   Check for: whitespace, special characters, or duplicate rows in CSV`
+        );
+      } else {
+        console.error(
+          `❌ DATABASE ERROR in results.csv at line ${lineNumber}: ${result.date} ${result.homeTeam} vs ${result.awayTeam}`,
+          err
+        );
+      }
     }
   }
 
